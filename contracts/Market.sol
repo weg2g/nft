@@ -90,14 +90,18 @@ contract NFTMarket is ReentrancyGuard {
     uint price = idToMarketItem[itemId].price;
     uint tokenId = idToMarketItem[itemId].tokenId;
     require(msg.value == price, "Please submit the asking price in order to complete the purchase");
+    
+    uint256 fee = (price * 10) / 100;
 
-    idToMarketItem[itemId].seller.transfer(msg.value);
+    idToMarketItem[itemId].seller.transfer(msg.value - fee);
     IERC721(nftContract).transferFrom(address(this), msg.sender, tokenId);
     idToMarketItem[itemId].owner = payable(msg.sender);
     idToMarketItem[itemId].sold = true;
     _itemsSold.increment();
-    payable(owner).transfer(listingPrice);
+    payable(owner).transfer(listingPrice + fee);
   }
+  
+  
 
   /* Returns all unsold market items */
   function fetchMarketItems() public view returns (MarketItem[] memory) {
